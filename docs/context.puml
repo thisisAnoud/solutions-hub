@@ -1,0 +1,24 @@
+
+@startuml context
+
+
+!include <C4/C4_Context>
+
+title Enterprise Solutions Hub - System context (C4 level 1)
+
+LAYOUT_WITH_LEGEND()
+
+Person(admin, "Admin", "Manages the system's solutions and users")
+Person(employee, "Tahakom Employee", "Discovers the enterprise solutions")
+
+System(solutions_hub, "Enterprise Solutions Hub", "Central catalog for enterprise solutions")
+
+System_Ext(gitLab, "GitLab", "Repositories and contributors")
+System_Ext(openShift, "OpenShift", "Deployments and runtime health")
+
+Rel(admin, solutions_hub, "Manages the projects and users' permissions")
+Rel(employee, solutions_hub, "Browses projects, teams, and services healths")
+Rel(solutions_hub, gitLab, "Retrieves repository details and team information")
+Rel(solutions_hub, openShift, "Retrieves deployment and workload health information")
+
+@enduml
