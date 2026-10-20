@@ -13,7 +13,7 @@ Person(employee, "Tahakom Employee", "Discovers the enterprise solutions")
 
 System(solutions_hub, "Enterprise Solutions Hub", "Central catalog for enterprise solutions")
 
-System_Ext(gitLab, "GitLab", "Repositories and contributors")
+System_Ext(gitLab, "GitLab", "Repositories and project's details")
 System_Ext(openShift, "OpenShift", "Deployments and runtime health")
 
 Rel(admin, solutions_hub, "Manages the projects and users' permissions")
