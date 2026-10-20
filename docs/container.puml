@@ -1,0 +1,34 @@
+@startuml containers
+!include <C4/C4_Container>
+title Enterprise Solutions Hub - Containers (C4 Level 2), target state
+LAYOUT_WITH_LEGEND()
+
+
+Person(admin, "Admin", "Manages the system's solutions and users")
+Person(employee, "Tahakom Employee", "Discovers the enterprise solutions")
+
+
+System_Boundary(enterprise, "Enterprise Solutions Hub") {
+      Container(core, "Hub Core", "springboot", "Central catalog for enterprise solutions")
+      Container(solutions, "Solutions Management", "springboot", "Links projects from different external systems tegether")
+      Container(session, "Session Management", "springboot", "Manages the user sessions")
+      ContainerDb(sessions, "Session Store", "Redis", "Users session data")
+
+
+}
+
+System_Ext(gitLab, "GitLab", "Repositories and project's details")
+System_Ext(openShift, "OpenShift", "Deployments and runtime health")
+
+Rel(admin, solutions, "Adds, updates and links projects together", "HTTPS")
+Rel(employee, core, "Explores the solutions", "HTTPS")
+
+Rel(solutions, gitLab, "Retrieves repository details and team information")
+Rel(solutions, openShift, "Retrieves deployment and workload health information")
+
+Rel(core, session, "Get session data", "HTTPS")
+Rel(solutions, session, "Get session data", "HTTPS")
+
+Rel(session, sessions, "Retrieves session information")
+
+@enduml
