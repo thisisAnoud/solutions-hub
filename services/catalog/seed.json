@@ -1,0 +1,15 @@
+[
+  {
+    "id": "solutions-hub",
+    "name": "Enterprise Solutions Hub",
+    "description": "Discover software solutions and development resources.",
+    "owner": "Platform Team",
+    "technology": "Node.js",
+    "documentationUrl": "https://github.com/thisisAnoud/solutions-hub",
+    "systemUrl": "http://localhost:8080",
+    "gitlabProjectId": "123",
+    "namespace": "demo",
+    "deployment": "solutions-hub",
+    "dependencies": []
+  }
+]

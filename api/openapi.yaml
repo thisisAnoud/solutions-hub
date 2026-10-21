@@ -1,0 +1,175 @@
+openapi: 3.0.3
+info:
+  title: Enterprise Solutions Hub API
+  version: 1.0.0
+  description: ' prototype: catalog browsing'
+servers:
+- url: http://localhost:8080
+paths:
+  /health:
+    get:
+      summary: Process liveness
+      responses:
+        '200':
+          description: Alive
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /ready:
+    get:
+      summary: Readiness; requires Redis in redis mode
+      responses:
+        '200':
+          description: Ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '503':
+          description: Not ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /v1/solutions:
+    get:
+      summary: Search catalog
+      parameters:
+      - name: q
+        in: query
+        schema: &id001
+          type: string
+      responses:
+        '200':
+          description: Matching solutions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  solutions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Solution'
+                  served_by: *id001
+    post:
+      summary: Register a solution; metadata persists on catalog volume
+      security:
+      - AdminKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Solution'
+            example:
+              id: visitor-service
+              name: Visitor Service
+              description: Manages visitor requests
+              owner: Business Apps
+              technology: Node.js
+              documentationUrl: https://example.com/docs
+              systemUrl: https://example.com
+              gitlabProjectId: '456'
+              namespace: demo
+              deployment: visitor-service
+              dependencies: []
+      responses:
+        '201':
+          description: Registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  solution:
+                    $ref: '#/components/schemas/Solution'
+                  served_by: *id001
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Missing/invalid admin key or writes disabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: ID already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Request too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Storage unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /v1/solutions/{id}:
+    get:
+      summary: Get project details by ID
+      parameters:
+      - &id002
+        name: id
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Solution
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  solution:
+                    $ref: '#/components/schemas/Solution'
+                  served_by: *id001
+        '404':
+          description: Unknown solution
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+    get:
+      summary: Read GitLab and OpenShift status
+      description: Mock mode is explicitly labeled. Live upstream failures appear
+        as status=unavailable within a 200 response. An unreachable integration service
+        returns 503.
+      parameters:
+      - *id002
+      responses:
+        '200':
+          description: Integration result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  integrations:
+                    $ref: '#/components/schemas/IntegrationStatus'
+                  served_by: *id001
+        '404':
+          description: Unknown solution
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Integration service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

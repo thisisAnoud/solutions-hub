@@ -1,0 +1,58 @@
+name: solutions-hub
+services:
+  catalog:
+    build: ./services/catalog
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      SESSION_STORE: redis
+      REDIS_URL: redis://redis:6379
+      INTEGRATIONS_URL: http://integrations:8081
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-}
+    volumes:
+      - catalog-data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+      integrations:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8080/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+  integrations:
+    build: ./services/integrations
+    environment:
+      INTEGRATION_MODE: ${INTEGRATION_MODE:-mock}
+      GITLAB_URL: ${GITLAB_URL:-https://gitlab.com}
+      GITLAB_TOKEN: ${GITLAB_TOKEN:-}
+      OPENSHIFT_URL: ${OPENSHIFT_URL:-}
+      OPENSHIFT_TOKEN: ${OPENSHIFT_TOKEN:-}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8081/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - session-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+  load:
+    image: grafana/k6:latest
+    profiles: ["tools"]
+    volumes:
+      - ./load:/scripts:ro
+    command: ["run", "/scripts/catalog-load.js"]
+    depends_on:
+      catalog:
+        condition: service_healthy
+volumes:
+  catalog-data:
+  session-data:
